@@ -4,6 +4,8 @@ on:
   schedule:
     - cron: '28,29,30,31 2 * * *'  # 09:28-09:31 WIB (02:28-02:31 UTC)
     - cron: '28,29,30,31 6 * * *'  # 13:28-13:31 WIB (06:28-06:31 UTC)
+  workflow_dispatch:  # Menambahkan trigger manual
+  push:              # Menambahkan trigger saat push ke repository
 
 jobs:
   absen:
