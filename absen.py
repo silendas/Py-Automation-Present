@@ -14,20 +14,29 @@ def get_jakarta_time():
     return datetime.now(pytz.timezone('Asia/Jakarta'))
 
 def is_absen_time(test_mode=False):
+    now = get_jakarta_time()
+    logger = setup_logging()
+    logger.info(f"Checking time: {now.strftime('%Y-%m-%d %H:%M:%S')} WIB")
+    
     if test_mode:
+        logger.info("Running in TEST mode")
         return "test_mode"
         
-    now = get_jakarta_time()
     hour = now.hour
     minute = now.minute
     
-    # Jadwal 1: 09:30 (toleransi 5 menit)
-    if hour == 9 and 28 <= minute <= 32:
+    logger.info(f"Current hour: {hour}, minute: {minute}")
+    
+    # Jadwal 1: 09:30-10:00
+    if hour == 9 and minute >= 30 or hour == 10 and minute == 0:
+        logger.info("Matched Jadwal 1 (09:30-10:00)")
         return "jadwal_1"
-    # Jadwal 2: 13:30 (toleransi 5 menit)
-    elif hour == 13 and 28 <= minute <= 32:
+    # Jadwal 2: 13:30-14:00
+    elif hour == 13 and minute >= 30 or hour == 14 and minute == 0:
+        logger.info("Matched Jadwal 2 (13:30-14:00)")
         return "jadwal_2"
     else:
+        logger.info("No schedule matched")
         return None
 
 def setup_driver():
@@ -60,15 +69,23 @@ def setup_logging():
 def verify_absen_success(driver, logger):
     try:
         # Cek halaman setelah login
-        if "logout" not in driver.page_source.lower():
-            logger.error("Verifikasi Gagal: Tidak menemukan tombol logout")
-            return False
-            
-        # Cek text yang menandakan absen berhasil
         page_source = driver.page_source.lower()
+        
+        # Cek jika sudah absen hari ini
+        already_absen_indicators = [
+            "anda sudah melakukan absensi",
+            "sudah absen",
+            "absensi berhasil"
+        ]
+        
+        for indicator in already_absen_indicators:
+            if indicator in page_source:
+                logger.info(f"Sudah absen hari ini (terdeteksi: '{indicator}')")
+                return True
+        
+        # Jika belum absen, cek proses absen berhasil
         success_indicators = [
             "berhasil",
-            "sudah absen",
             "logout"
         ]
         

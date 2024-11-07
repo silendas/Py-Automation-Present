@@ -2,8 +2,8 @@ name: Auto Absen UNBIN
 
 on:
   schedule:
-    - cron: '28,29,30,31,32 2 * * *'  # 09:28-09:32 WIB (02:28-02:32 UTC)
-    - cron: '28,29,30,31,32 6 * * *'  # 13:28-13:32 WIB (06:28-06:32 UTC)
+    - cron: '*/5 2-3 * * *'   # Setiap 5 menit antara 09:00-10:00 WIB
+    - cron: '*/5 6-7 * * *'   # Setiap 5 menit antara 13:00-14:00 WIB
   workflow_dispatch:
   push:
 
