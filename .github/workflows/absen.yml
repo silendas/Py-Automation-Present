@@ -2,8 +2,8 @@ name: Auto Absen UNBIN
 
 on:
   schedule:
-    - cron: '29 2 * * *'  # 09:29 WIB (02:29 UTC)
-    - cron: '29 6 * * *'  # 13:29 WIB (06:29 UTC)
+    - cron: '28,29,30,31 2 * * *'  # 09:28-09:31 WIB (02:28-02:31 UTC)
+    - cron: '28,29,30,31 6 * * *'  # 13:28-13:31 WIB (06:28-06:31 UTC)
 
 jobs:
   absen:
@@ -20,7 +20,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install selenium webdriver-manager
+        pip install selenium webdriver-manager pytz
         
     - name: Run absen script
       env:
