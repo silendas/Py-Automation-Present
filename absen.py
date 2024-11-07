@@ -17,11 +17,11 @@ def is_absen_time():
     hour = now.hour
     minute = now.minute
     
-    # Jadwal 1: 09:30
-    if hour == 9 and minute == 30:
+    # Jadwal 1: 09:30 (toleransi 5 menit)
+    if hour == 9 and 28 <= minute <= 32:
         return "jadwal_1"
-    # Jadwal 2: 13:30
-    elif hour == 13 and minute == 30:
+    # Jadwal 2: 13:30 (toleransi 5 menit)
+    elif hour == 13 and 28 <= minute <= 32:
         return "jadwal_2"
     else:
         return None

@@ -2,8 +2,8 @@ name: Auto Absen UNBIN
 
 on:
   schedule:
-    - cron: '30 2 * * *'  # 09:30 WIB (02:30 UTC)
-    - cron: '30 6 * * *'  # 13:30 WIB (06:30 UTC)
+    - cron: '28,29,30,31,32 2 * * *'  # 09:28-09:32 WIB (02:28-02:32 UTC)
+    - cron: '28,29,30,31,32 6 * * *'  # 13:28-13:32 WIB (06:28-06:32 UTC)
   workflow_dispatch:
   push:
 
@@ -36,4 +36,4 @@ jobs:
       with:
         name: absensi-logs
         path: absen/log/
-        retention-days: 7
+        retention-days: 90
