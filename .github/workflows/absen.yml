@@ -39,7 +39,7 @@ jobs:
         path: |
           absen/log/
           absen/log/screenshots/
-        retention-days: 90
+        retention-days: 7
         
   scheduled-absen:
     runs-on: ubuntu-latest
@@ -71,4 +71,4 @@ jobs:
         path: |
           absen/log/
           absen/log/screenshots/
-        retention-days: 90
+        retention-days: 7
