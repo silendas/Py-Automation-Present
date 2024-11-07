@@ -8,11 +8,15 @@ import time
 from datetime import datetime
 import pytz
 import logging
+import argparse
 
 def get_jakarta_time():
     return datetime.now(pytz.timezone('Asia/Jakarta'))
 
-def is_absen_time():
+def is_absen_time(test_mode=False):
+    if test_mode:
+        return "test_mode"
+        
     now = get_jakarta_time()
     hour = now.hour
     minute = now.minute
@@ -53,10 +57,47 @@ def setup_logging():
     )
     return logging.getLogger(__name__)
 
-def login_dan_absen():
+def verify_absen_success(driver, logger):
+    try:
+        # Cek halaman setelah login
+        if "logout" not in driver.page_source.lower():
+            logger.error("Verifikasi Gagal: Tidak menemukan tombol logout")
+            return False
+            
+        # Cek text yang menandakan absen berhasil
+        page_source = driver.page_source.lower()
+        success_indicators = [
+            "berhasil",
+            "sudah absen",
+            "logout"
+        ]
+        
+        found_indicators = [ind for ind in success_indicators if ind in page_source]
+        if found_indicators:
+            logger.info(f"Indikator sukses ditemukan: {', '.join(found_indicators)}")
+            
+            # Ambil screenshot sebagai bukti
+            screenshot_dir = os.path.join('absen', 'log', 'screenshots')
+            os.makedirs(screenshot_dir, exist_ok=True)
+            timestamp = get_jakarta_time().strftime('%Y-%m-%d_%H-%M-%S')
+            screenshot_path = os.path.join(screenshot_dir, f'absen_{timestamp}.png')
+            driver.save_screenshot(screenshot_path)
+            logger.info(f"Screenshot disimpan: {screenshot_path}")
+            
+            return True
+        else:
+            logger.error("Verifikasi Gagal: Tidak menemukan indikator keberhasilan")
+            return False
+            
+    except Exception as e:
+        logger.error(f"Error saat verifikasi: {str(e)}")
+        return False
+
+def login_dan_absen(test_mode=False):
     logger = setup_logging()
-    jadwal = is_absen_time()
-    if not jadwal:
+    jadwal = is_absen_time(test_mode)
+    
+    if not jadwal and not test_mode:
         logger.warning("Bukan waktu absen!")
         return False
         
@@ -64,7 +105,8 @@ def login_dan_absen():
     try:
         waktu = get_jakarta_time()
         logger.info(f"=================== MULAI PROSES ABSEN ===================")
-        logger.info(f"Memulai proses absen {jadwal} pada {waktu.strftime('%Y-%m-%d %H:%M:%S')} WIB")
+        logger.info(f"Mode: {'TEST' if test_mode else 'NORMAL'}")
+        logger.info(f"Memulai proses absen pada {waktu.strftime('%Y-%m-%d %H:%M:%S')} WIB")
         
         username = os.getenv('UNBIN_USERNAME')
         password = os.getenv('UNBIN_PASSWORD')
@@ -97,7 +139,8 @@ def login_dan_absen():
         logger.info("Menunggu proses login...")
         time.sleep(5)
         
-        if "logout" in driver.page_source.lower():
+        # Verifikasi keberhasilan
+        if verify_absen_success(driver, logger):
             waktu_selesai = get_jakarta_time()
             logger.info(f"Login dan Absen {jadwal} BERHASIL pada {waktu_selesai.strftime('%H:%M:%S')} WIB!")
             logger.info("=================== PROSES SELESAI ===================\n")
@@ -117,4 +160,8 @@ def login_dan_absen():
             logger.info("Browser ditutup")
 
 if __name__ == "__main__":
-    login_dan_absen()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--test", action="store_true", help="Jalankan dalam mode test")
+    args = parser.parse_args()
+    
+    login_dan_absen(test_mode=args.test)
