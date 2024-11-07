@@ -35,12 +35,12 @@ def setup_driver():
 
 # Setup logging
 def setup_logging():
-    # Buat folder logs jika belum ada
-    if not os.path.exists('logs'):
-        os.makedirs('logs')
+    # Buat folder absen/log jika belum ada
+    log_dir = os.path.join('absen', 'log')
+    os.makedirs(log_dir, exist_ok=True)
     
     # Format nama file log dengan tanggal
-    log_filename = f"logs/absensi_{get_jakarta_time().strftime('%Y-%m-%d')}.log"
+    log_filename = os.path.join(log_dir, f"absensi_{get_jakarta_time().strftime('%Y-%m-%d')}.log")
     
     # Konfigurasi logging
     logging.basicConfig(
@@ -48,7 +48,7 @@ def setup_logging():
         format='%(asctime)s - %(levelname)s - %(message)s',
         handlers=[
             logging.FileHandler(log_filename, encoding='utf-8'),
-            logging.StreamHandler()  # Untuk menampilkan log di console juga
+            logging.StreamHandler()
         ]
     )
     return logging.getLogger(__name__)
