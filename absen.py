@@ -31,10 +31,14 @@ def is_absen_time(test_mode=False):
     if hour == 9 and minute >= 30 or hour == 10 and minute == 0:
         logger.info("Matched Jadwal 1 (09:30-10:00)")
         return "jadwal_1"
-    # Jadwal 2: 13:30-14:00
-    elif hour == 13 and minute >= 30 or hour == 14 and minute == 0:
-        logger.info("Matched Jadwal 2 (13:30-14:00)")
+    # Jadwal 2: 12:30-13:00
+    elif hour == 12 and minute >= 30 or hour == 13 and minute == 0:
+        logger.info("Matched Jadwal 2 (12:30-13:00)")
         return "jadwal_2"
+    # Jadwal 3: 13:30-14:00
+    elif hour == 13 and minute >= 30 or hour == 14 and minute == 0:
+        logger.info("Matched Jadwal 3 (13:30-14:00)")
+        return "jadwal_3"
     else:
         logger.info("No schedule matched")
         return None
