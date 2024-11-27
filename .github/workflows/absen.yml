@@ -2,14 +2,15 @@ name: Auto Absen UNBIN
 
 on:
   schedule:
-    # Jadwal 1: 09:30 WIB (02:30 UTC)
-    - cron: '25,26,27,28,29,30,31,32,33,34,35 2 * * *'  # 09:25-09:35 WIB
+    # Jadwal 1: 09:30-10:30 WIB (02:30-03:30 UTC)
+    - cron: '*/1 2-3 * * *'  
     
-    # Jadwal 2: 12:30 WIB (05:30 UTC)
-    - cron: '25,26,27,28,29,30,31,32,33,34,35 5 * * *'  # 12:25-12:35 WIB
+    # Jadwal 2: 12:30-13:30 WIB (05:30-06:30 UTC)
+    - cron: '*/1 5-6 * * *'  
     
-    # Jadwal 3: 13:30 WIB (06:30 UTC)
-    - cron: '25,26,27,28,29,30,31,32,33,34,35 6 * * *'  # 13:25-13:35 WIB
+    # Jadwal 3: 13:30-14:30 WIB (06:30-07:30 UTC)
+    - cron: '*/1 6-7 * * *'  
+    
   workflow_dispatch:
   push:
 
