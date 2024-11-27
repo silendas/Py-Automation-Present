@@ -118,25 +118,46 @@ def verify_absen_success(driver, logger):
 def get_accounts_from_env():
     """Mengambil semua credentials dari environment variables secara dinamis"""
     accounts = []
-    i = 1
-    
     logger = setup_logging()
     logger.info("Mencari credentials dari environment variables...")
     
-    while True:
-        username = os.getenv(f'UNBIN_USERNAME_{i}')
-        password = os.getenv(f'UNBIN_PASSWORD_{i}')
-        
-        if not username or not password:
-            break
-            
-        accounts.append({
-            "username": username,
-            "password": password
-        })
-        i += 1
+    # Debug: print semua environment variables (sensor password)
+    secrets_json = os.getenv('SECRETS_CONTEXT', '{}')
+    logger.info(f"Raw SECRETS_CONTEXT: {secrets_json[:100]}...")  # Hanya tampilkan awal json
     
-    logger.info(f"Ditemukan {len(accounts)} akun")
+    try:
+        secrets = json.loads(secrets_json)
+        logger.info(f"Secrets keys found: {list(secrets.keys())}")
+        
+        # Cari pasangan username dan password
+        usernames = sorted([k for k in secrets.keys() if k.startswith('UNBIN_USERNAME_')])
+        logger.info(f"Username keys found: {usernames}")
+        
+        for username_key in usernames:
+            index = username_key.split('_')[-1]
+            password_key = f'UNBIN_PASSWORD_{index}'
+            
+            if password_key in secrets:
+                username = secrets[username_key]
+                password = secrets[password_key]
+                
+                # Log username (tapi jangan log password)
+                logger.info(f"Processing account: {username}")
+                
+                accounts.append({
+                    "username": username,
+                    "password": password
+                })
+                
+        logger.info(f"Ditemukan {len(accounts)} akun")
+        
+    except json.JSONDecodeError as e:
+        logger.error(f"Error parsing secrets JSON: {str(e)}")
+        logger.error(f"Invalid JSON: {secrets_json[:100]}...")
+    except Exception as e:
+        logger.error(f"Error getting accounts: {str(e)}")
+        logger.error(f"Exception type: {type(e)}")
+        
     return accounts
 
 def process_all_accounts(test_mode=False):
