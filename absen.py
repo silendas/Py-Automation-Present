@@ -9,6 +9,7 @@ from datetime import datetime
 import pytz
 import logging
 import argparse
+import json
 
 def get_jakarta_time():
     return datetime.now(pytz.timezone('Asia/Jakarta'))
@@ -114,10 +115,9 @@ def verify_absen_success(driver, logger):
         logger.error(f"Error saat verifikasi: {str(e)}")
         return False
 
-def login_dan_absen(test_mode=False):
+def login_dan_absen(test_mode=False, username=None, password=None):
     logger = setup_logging()
     jadwal = is_absen_time(test_mode)
-    
     if not jadwal and not test_mode:
         logger.warning("Bukan waktu absen!")
         return False
@@ -126,18 +126,13 @@ def login_dan_absen(test_mode=False):
     try:
         waktu = get_jakarta_time()
         logger.info(f"=================== MULAI PROSES ABSEN ===================")
-        logger.info(f"Mode: {'TEST' if test_mode else 'NORMAL'}")
-        logger.info(f"Memulai proses absen pada {waktu.strftime('%Y-%m-%d %H:%M:%S')} WIB")
-        
-        username = os.getenv('UNBIN_USERNAME')
-        password = os.getenv('UNBIN_PASSWORD')
+        logger.info(f"Memulai proses absen untuk user: {username}")
+        logger.info(f"Waktu: {waktu.strftime('%Y-%m-%d %H:%M:%S')} WIB")
         
         if not username or not password:
             logger.error("Error: Credentials tidak ditemukan!")
             return False
             
-        logger.info(f"Login dengan username: {username}")
-        
         driver = setup_driver()
         logger.info("Browser Chrome berhasil diinisialisasi")
         
@@ -180,9 +175,49 @@ def login_dan_absen(test_mode=False):
             driver.quit()
             logger.info("Browser ditutup")
 
+def process_all_accounts(test_mode=False):
+    logger = setup_logging()
+    results = []
+    
+    # Ambil credentials dari environment variables untuk backward compatibility
+    env_username = os.getenv('UNBIN_USERNAME')
+    env_password = os.getenv('UNBIN_PASSWORD')
+    
+    if env_username and env_password:
+        logger.info("Processing account from environment variables")
+        success = login_dan_absen(test_mode, env_username, env_password)
+        results.append({"username": env_username, "success": success})
+    
+    # Proses accounts dari JSON
+    accounts_file = os.path.join('config', 'accounts.json')
+    if os.path.exists(accounts_file):
+        try:
+            with open(accounts_file) as f:
+                accounts = json.load(f)
+                
+            for account in accounts.get('accounts', []):
+                username = account.get('username')
+                password = account.get('password')
+                
+                if username and password:
+                    logger.info(f"Processing account: {username}")
+                    success = login_dan_absen(test_mode, username, password)
+                    results.append({"username": username, "success": success})
+                    
+        except Exception as e:
+            logger.error(f"Error reading accounts file: {str(e)}")
+    
+    # Log summary
+    logger.info("\n=== SUMMARY ===")
+    for result in results:
+        status = "SUCCESS" if result["success"] else "FAILED"
+        logger.info(f"Account {result['username']}: {status}")
+    
+    return all(r["success"] for r in results)
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--test", action="store_true", help="Jalankan dalam mode test")
     args = parser.parse_args()
     
-    login_dan_absen(test_mode=args.test)
+    process_all_accounts(test_mode=args.test)

@@ -1,3 +1,6 @@
 # Ignore log files
 absen/log/*
 !absen/log/.gitkeep 
+
+# Ignore config files with sensitive data
+config/accounts.json 

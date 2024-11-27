@@ -44,6 +44,7 @@ jobs:
         
   scheduled-absen:
     runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
     
     steps:
     - uses: actions/checkout@v4
@@ -58,10 +59,23 @@ jobs:
         python -m pip install --upgrade pip
         pip install selenium webdriver-manager pytz
         
+    - name: Setup accounts config
+      run: |
+        mkdir -p config
+        echo '{
+          "accounts": [
+            {
+              "username": "${{ secrets.UNBIN_USERNAME_1 }}",
+              "password": "${{ secrets.UNBIN_PASSWORD_1 }}"
+            },
+            {
+              "username": "${{ secrets.UNBIN_USERNAME_2 }}",
+              "password": "${{ secrets.UNBIN_PASSWORD_2 }}"
+            }
+          ]
+        }' > config/accounts.json
+      
     - name: Run absen script
-      env:
-        UNBIN_USERNAME: ${{ secrets.UNBIN_USERNAME }}
-        UNBIN_PASSWORD: ${{ secrets.UNBIN_PASSWORD }}
       run: python absen.py
       
     - name: Upload log files
