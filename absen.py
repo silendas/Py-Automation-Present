@@ -115,6 +115,60 @@ def verify_absen_success(driver, logger):
         logger.error(f"Error saat verifikasi: {str(e)}")
         return False
 
+def get_accounts_from_env():
+    """Mengambil semua credentials dari environment variables secara dinamis"""
+    accounts = []
+    i = 1
+    
+    logger = setup_logging()
+    logger.info("Mencari credentials dari environment variables...")
+    
+    while True:
+        username = os.getenv(f'UNBIN_USERNAME_{i}')
+        password = os.getenv(f'UNBIN_PASSWORD_{i}')
+        
+        if not username or not password:
+            break
+            
+        accounts.append({
+            "username": username,
+            "password": password
+        })
+        i += 1
+    
+    logger.info(f"Ditemukan {len(accounts)} akun")
+    return accounts
+
+def process_all_accounts(test_mode=False):
+    logger = setup_logging()
+    results = []
+    
+    # Ambil semua accounts dari environment variables
+    accounts = get_accounts_from_env()
+    
+    if not accounts:
+        logger.error("Tidak ada akun yang ditemukan!")
+        return False
+    
+    for account in accounts:
+        username = account["username"]
+        password = account["password"]
+        
+        logger.info(f"Processing account: {username}")
+        success = login_dan_absen(test_mode, username, password)
+        results.append({"username": username, "success": success})
+        
+        # Tunggu sebentar antara setiap akun untuk menghindari overload
+        time.sleep(5)
+    
+    # Log summary
+    logger.info("\n=== SUMMARY ===")
+    for result in results:
+        status = "SUCCESS" if result["success"] else "FAILED"
+        logger.info(f"Account {result['username']}: {status}")
+    
+    return all(r["success"] for r in results)
+
 def login_dan_absen(test_mode=False, username=None, password=None):
     logger = setup_logging()
     jadwal = is_absen_time(test_mode)
@@ -174,46 +228,6 @@ def login_dan_absen(test_mode=False, username=None, password=None):
         if driver:
             driver.quit()
             logger.info("Browser ditutup")
-
-def process_all_accounts(test_mode=False):
-    logger = setup_logging()
-    results = []
-    
-    # Ambil credentials dari environment variables untuk backward compatibility
-    env_username = os.getenv('UNBIN_USERNAME')
-    env_password = os.getenv('UNBIN_PASSWORD')
-    
-    if env_username and env_password:
-        logger.info("Processing account from environment variables")
-        success = login_dan_absen(test_mode, env_username, env_password)
-        results.append({"username": env_username, "success": success})
-    
-    # Proses accounts dari JSON
-    accounts_file = os.path.join('config', 'accounts.json')
-    if os.path.exists(accounts_file):
-        try:
-            with open(accounts_file) as f:
-                accounts = json.load(f)
-                
-            for account in accounts.get('accounts', []):
-                username = account.get('username')
-                password = account.get('password')
-                
-                if username and password:
-                    logger.info(f"Processing account: {username}")
-                    success = login_dan_absen(test_mode, username, password)
-                    results.append({"username": username, "success": success})
-                    
-        except Exception as e:
-            logger.error(f"Error reading accounts file: {str(e)}")
-    
-    # Log summary
-    logger.info("\n=== SUMMARY ===")
-    for result in results:
-        status = "SUCCESS" if result["success"] else "FAILED"
-        logger.info(f"Account {result['username']}: {status}")
-    
-    return all(r["success"] for r in results)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
