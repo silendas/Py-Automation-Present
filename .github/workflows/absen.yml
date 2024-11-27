@@ -27,6 +27,8 @@ jobs:
         pip install selenium webdriver-manager pytz
         
     - name: Run test absen
+      env: 
+        SECRETS_CONTEXT: ${{ toJson(secrets) }}
       run: python absen.py --test
       
     - name: Upload log files
@@ -57,6 +59,8 @@ jobs:
         pip install selenium webdriver-manager pytz
         
     - name: Run absen script
+      env:
+        SECRETS_CONTEXT: ${{ toJson(secrets) }}
       run: python absen.py
       
     - name: Upload log files
